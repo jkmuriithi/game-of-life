@@ -24,15 +24,15 @@ enum GameState {
 }
 
 fn main() {
-    let (mut rl, thread) =
-        raylib::init().size(SCREEN_WIDTH, SCREEN_HEIGHT).vsync().build();
+    let (mut rl, thread) = raylib::init()
+        .size(SCREEN_WIDTH, SCREEN_HEIGHT)
+        .vsync()
+        .build();
 
     let start = Instant::now();
     let mut current_tick: u128 = 0;
 
     let mut grid = new_grid();
-    let mut num_alive = 0;
-
     let mut state = GameState::EDITING;
 
     while !rl.window_should_close() {
@@ -42,18 +42,16 @@ fn main() {
                 if rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON) {
                     let (x, y) = px_to_square(rl.get_mouse_position());
                     grid[y][x] = true;
-                    num_alive += 1;
                 }
                 if rl.is_mouse_button_down(MouseButton::MOUSE_RIGHT_BUTTON) {
                     let (x, y) = px_to_square(rl.get_mouse_position());
                     grid[y][x] = false;
-                    num_alive -= 1;
                 }
 
                 match rl.get_key_pressed() {
                     Some(KeyboardKey::KEY_SPACE) => state = GameState::RUNNING,
                     Some(KeyboardKey::KEY_X) => grid = new_grid(),
-                    _ => ()
+                    _ => (),
                 }
             }
             GameState::RUNNING => {
@@ -63,7 +61,8 @@ fn main() {
                     current_tick = tick;
 
                     let mut next_grid = new_grid();
-                    let mut next_num_alive = 0;
+                    let mut num_alive = 0;
+                    let mut still_frame = true;
 
                     for x in 0..U_GRID_WIDTH {
                         for y in 0..U_GRID_HEIGHT {
@@ -72,24 +71,28 @@ fn main() {
                             if grid[y][x] {
                                 if neighbor_count == 2 || neighbor_count == 3 {
                                     next_grid[y][x] = true;
-                                    next_num_alive += 1;
+                                    num_alive += 1;
+                                }
+                                else {
+                                    still_frame = false;
                                 }
                             } else {
                                 if neighbor_count == 3 {
                                     next_grid[y][x] = true;
-                                    next_num_alive += 1;
+                                    num_alive += 1;
+                                    still_frame = false;
                                 }
                             }
                         }
                     }
 
+                    if still_frame || num_alive == 0  {
+                        state = GameState::EDITING;
+                    }
+
                     grid = next_grid;
-                    num_alive = next_num_alive;
                 }
 
-                if num_alive == 0 {
-                    state = GameState::EDITING;
-                }
                 if let Some(KeyboardKey::KEY_SPACE) = rl.get_key_pressed() {
                     state = GameState::EDITING;
                 }
