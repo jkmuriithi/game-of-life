@@ -19,7 +19,7 @@ git clone https://github.com/jkmuriithi/snake-raylib.git
 cd snake-raylib
 cargo run
 
-# Create a game executable in ./target/release
+# Create an optimized executable in ./target/release
 cargo build --release
 ```
 
