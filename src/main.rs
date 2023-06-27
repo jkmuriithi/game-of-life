@@ -89,12 +89,10 @@ fn main() {
                                 } else {
                                     still_frame = false;
                                 }
-                            } else {
-                                if neighbor_count == 3 {
-                                    next_grid[y][x] = true;
-                                    num_alive += 1;
-                                    still_frame = false;
-                                }
+                            } else if neighbor_count == 3 {
+                                next_grid[y][x] = true;
+                                num_alive += 1;
+                                still_frame = false;
                             }
                         }
                     }
