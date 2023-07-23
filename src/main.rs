@@ -43,8 +43,8 @@ const U_GRID_WIDTH: usize = GRID_WIDTH as usize;
 const U_GRID_HEIGHT: usize = GRID_HEIGHT as usize;
 
 enum GameState {
-    EDITING,
-    RUNNING,
+    Editing,
+    Running,
 }
 
 fn main() {
@@ -53,12 +53,12 @@ fn main() {
 
     let start = Instant::now();
     let mut current_tick: u128 = 0;
-    let mut state = GameState::EDITING;
+    let mut state = GameState::Editing;
 
     let mut grid = new_grid();
     while !rl.window_should_close() {
         match state {
-            GameState::EDITING => {
+            GameState::Editing => {
                 // Use mouse to set squares
                 if rl.is_mouse_button_down(MOUSE_LEFT_BUTTON) {
                     let (x, y) = px_to_square(rl.get_mouse_position());
@@ -69,12 +69,12 @@ fn main() {
                 }
 
                 match rl.get_key_pressed() {
-                    Some(KeyboardKey::KEY_SPACE) => state = GameState::RUNNING,
+                    Some(KeyboardKey::KEY_SPACE) => state = GameState::Running,
                     Some(KeyboardKey::KEY_X) => grid = new_grid(),
                     _ => (),
                 }
             }
-            GameState::RUNNING => {
+            GameState::Running => {
                 let tick = start.elapsed().as_nanos() / NANOS_PER_TICK;
 
                 if tick > current_tick {
@@ -104,14 +104,14 @@ fn main() {
                     }
 
                     if still_frame || num_alive == 0 {
-                        state = GameState::EDITING;
+                        state = GameState::Editing;
                     }
 
                     grid = next_grid;
                 }
 
                 if let Some(KeyboardKey::KEY_SPACE) = rl.get_key_pressed() {
-                    state = GameState::EDITING;
+                    state = GameState::Editing;
                 }
             }
         }
@@ -121,23 +121,14 @@ fn main() {
         // Draw squares
         for x in 0..GRID_WIDTH {
             for y in 0..GRID_HEIGHT {
-                if grid[y as usize][x as usize] {
-                    d.draw_rectangle(
-                        x * GRID_SCALE,
-                        y * GRID_SCALE,
-                        GRID_SCALE,
-                        GRID_SCALE,
-                        LIVE_COLOR,
-                    );
-                } else {
-                    d.draw_rectangle(
-                        x * GRID_SCALE,
-                        y * GRID_SCALE,
-                        GRID_SCALE,
-                        GRID_SCALE,
-                        DEAD_COLOR,
-                    );
-                }
+                let alive = grid[y as usize][x as usize];
+                d.draw_rectangle(
+                    x * GRID_SCALE,
+                    y * GRID_SCALE,
+                    GRID_SCALE,
+                    GRID_SCALE,
+                    if alive { LIVE_COLOR } else { DEAD_COLOR },
+                );
             }
         }
 
@@ -151,7 +142,7 @@ fn main() {
             d.draw_line(0, y_px, SCREEN_WIDTH, y_px, GRID_COLOR);
         }
 
-        if let GameState::EDITING = state {
+        if let GameState::Editing = state {
             d.draw_text("Edit Mode", 15, 15, 25, Color::DARKBLUE);
         }
     }
@@ -175,7 +166,7 @@ fn new_grid() -> Vec<Vec<bool>> {
 }
 
 /// Returns the number of living neighbors which square `(x, y)` has in `grid`.
-fn living_neighbors(grid: &Vec<Vec<bool>>, x: usize, y: usize) -> u8 {
+fn living_neighbors(grid: &[Vec<bool>], x: usize, y: usize) -> u8 {
     let left = if x == 0 { x } else { x - 1 };
     let right = if x == U_GRID_WIDTH - 1 { x } else { x + 1 };
     let above = if y == 0 { y } else { y - 1 };
